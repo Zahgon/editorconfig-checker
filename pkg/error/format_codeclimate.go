@@ -1,10 +1,5 @@
 package error
 
-import (
-	"crypto/md5"
-	"fmt"
-)
-
 // CodeclimageLines represents the lines of an issue in codeclimate format
 type CodeclimateLines struct {
 	Begin int `json:"begin"`
@@ -32,19 +27,6 @@ const (
 )
 
 func newCodeclimateIssue(err ValidationError, path string) CodeclimateIssue {
-	toHash := fmt.Sprintf("%s:%d:%d:%s", path, err.LineNumber, err.AdditionalIdenticalErrorCount, err.Message.Error())
-	fingerprint := fmt.Sprintf("%x", md5.Sum([]byte(toHash)))
-	return CodeclimateIssue{
-		Check:       checkName,
-		Description: err.Message.Error(),
-		Fingerprint: fingerprint,
-		Severity:    severity,
-		Location: CodeclimateLocation{
-			Path: path,
-			Lines: CodeclimateLines{
-				Begin: err.LineNumber,
-				End:   err.AdditionalIdenticalErrorCount,
-			},
-		},
-	}
+	_ = "STUB: not implemented"
+	return *new(CodeclimateIssue)
 }

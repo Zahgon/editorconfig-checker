@@ -2,9 +2,7 @@
 package logger
 
 import (
-	"fmt"
 	"io"
-	"os"
 	"sync"
 )
 
@@ -25,97 +23,47 @@ type Logger struct {
 	lock           sync.Mutex
 }
 
-func GetLogger() *Logger {
-	logger := &Logger{}
-	logger.Init()
-	return logger
-}
+func GetLogger() *Logger { _ = "STUB: not implemented"; return nil }
 
 // initialize the Logger to write to standard output
-func (l *Logger) Init() {
-	l.writer = os.Stdout
-}
+func (l *Logger) Init() { _ = "STUB: not implemented"; return }
 
 // ensure the Logger is initialized on first print
-func (l *Logger) lazyInit() {
-	if l.writer == nil {
-		l.Init()
-	}
-}
+func (l *Logger) lazyInit() { _ = "STUB: not implemented"; return }
 
 func (l *Logger) GetWriter() io.Writer {
-	return l.writer
+	_ = "STUB: not implemented"
+
+	// allow users to overwrite the writer used
+	return *new(io.Writer)
 }
 
-// allow users to overwrite the writer used
 func (l *Logger) SetWriter(w io.Writer) {
-	l.writer = w
+	_ = "STUB: not implemented"
+
+	// apply the settings from the Logger given to the instance
+	return
 }
 
-// apply the settings from the Logger given to the instance
-func (l *Logger) Configure(newLogger *Logger) {
-	l.VerboseEnabled = newLogger.VerboseEnabled
-	l.DebugEnabled = newLogger.DebugEnabled
-	l.NoColor = newLogger.NoColor
-	if newLogger.writer != nil {
-		l.SetWriter(newLogger.writer)
-	}
-}
+func (l *Logger) Configure(newLogger *Logger) { _ = "STUB: not implemented"; return }
 
 // Debug prints a message when Debugg is set to true on the Logger
-func (l *Logger) Debug(format string, a ...interface{}) {
-	if l.DebugEnabled {
-		message := fmt.Sprintf(format, a...)
-		l.println(message)
-	}
-}
+func (l *Logger) Debug(format string, a ...interface{}) { _ = "STUB: not implemented"; return }
 
 // Verbose prints a message when Verbosee is set to true on the Logger
-func (l *Logger) Verbose(format string, a ...interface{}) {
-	if l.VerboseEnabled {
-		message := fmt.Sprintf(format, a...)
-		l.println(message)
-	}
-}
+func (l *Logger) Verbose(format string, a ...interface{}) { _ = "STUB: not implemented"; return }
 
 // Warning prints a warning message to Stdout in yellow
-func (l *Logger) Warning(format string, a ...interface{}) {
-	message := fmt.Sprintf(format, a...)
-	if l.NoColor {
-		l.println(message)
-	} else {
-		l.printlnColor(message, escSeqYellow)
-	}
-}
+func (l *Logger) Warning(format string, a ...interface{}) { _ = "STUB: not implemented"; return }
 
 // Output prints a message on Stdout in 'normal' color
-func (l *Logger) Output(format string, a ...interface{}) {
-	message := fmt.Sprintf(format, a...)
-	l.println(message)
-}
+func (l *Logger) Output(format string, a ...interface{}) { _ = "STUB: not implemented"; return }
 
 // Error prints an error message to Stdout in red
-func (l *Logger) Error(format string, a ...interface{}) {
-	message := fmt.Sprintf(format, a...)
-	if l.NoColor {
-		l.println(message)
-	} else {
-		l.printlnColor(message, escSeqRed)
-	}
-}
+func (l *Logger) Error(format string, a ...interface{}) { _ = "STUB: not implemented"; return }
 
 // println prints a message with a trailing newline
-func (l *Logger) println(message string) {
-	l.lazyInit()
-	l.lock.Lock()
-	fmt.Fprintln(l.writer, message)
-	l.lock.Unlock()
-}
+func (l *Logger) println(message string) { _ = "STUB: not implemented"; return }
 
 // printlnColor prints a message in a given ANSI-color with a trailing newline
-func (l *Logger) printlnColor(message string, color string) {
-	l.lazyInit()
-	l.lock.Lock()
-	fmt.Fprintf(l.writer, "%s%s%s\n", color, message, escSeqReset)
-	l.lock.Unlock()
-}
+func (l *Logger) printlnColor(message string, color string) { _ = "STUB: not implemented"; return }

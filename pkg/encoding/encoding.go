@@ -2,13 +2,6 @@
 package encoding
 
 import (
-	"bytes"
-	"fmt"
-	"slices"
-	"strings"
-	"unicode/utf8"
-
-	"github.com/wlynxg/chardet"
 	"github.com/wlynxg/chardet/consts"
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/charmap"
@@ -259,154 +252,65 @@ func init() {
 // (at least until we can improve our success rate on encoding detection).
 // Per https://github.com/editorconfig-checker/editorconfig-checker/pull/457#issuecomment-2779587476
 func CharsetsMatch(charsetFound, charsetWanted string) bool {
-	if strings.TrimSpace(charsetWanted) == "" {
-		return true
-	}
-
-	charsetFound = normalizeCharsetName(charsetFound)
-	charsetWanted = normalizeCharsetName(charsetWanted)
-
-	if charsetFound == "utf8sig" {
-		charsetFound = "utf8bom"
-	}
-
-	if !supported(charsetFound) {
-		if charsetWanted == CharsetLatin1 {
-			return true
-		}
-	}
-
-	// latin1 (iso88591), and ascii files are utf8 files, too.
-	if charsetWanted == "utf8" && slices.Contains(latin1Encodings, charsetFound) {
-		return true
-	}
-
-	return charsetFound == charsetWanted
+	_ = "STUB: not implemented"
+	return false
 }
+
+// latin1 (iso88591), and ascii files are utf8 files, too.
 
 // Decode attempts to determine a file's character encoding.
 // If successful, it returns the content as a UTF-8 encoded string, and the
 // name of the encoding.
 // If not, it returns the content as a string, the encoding name, and an error.
 func Decode(contentBytes []byte) (string, string, error) {
-	encoding, _, _ := Detect(contentBytes)
-
-	// Check for binary data before attempting to decode.
-	// Binary files (e.g. GPG-encrypted data) can be incorrectly decoded as single-byte encodings like MacCyrillic.
-	// We use IsStrictBinary (which excludes ESC/SO/SI) to avoid false positives on ISO-2022 family text,
-	// and skip the check for UTF-16/32 which naturally contain null bytes.
-	if IsStrictBinary(contentBytes) && !isMultiByteEncoding(encoding) {
-		return string(contentBytes), BinaryData, nil
-	}
-
-	decodedContentString, err := decodeText(contentBytes, encoding)
-	if err != nil {
-		if IsBinary(contentBytes) {
-			return string(contentBytes), BinaryData, nil
-		}
-
-		return string(contentBytes), encoding, err
-	}
-
-	return decodedContentString, encoding, nil
+	_ = "STUB: not implemented"
+	return "", "", nil
 }
+
+// Check for binary data before attempting to decode.
+// Binary files (e.g. GPG-encrypted data) can be incorrectly decoded as single-byte encodings like MacCyrillic.
+// We use IsStrictBinary (which excludes ESC/SO/SI) to avoid false positives on ISO-2022 family text,
+// and skip the check for UTF-16/32 which naturally contain null bytes.
 
 // DecodeBytes is deprecated and may be removed in the future.
 // Use Decode instead.
 func DecodeBytes(contentBytes []byte) (string, string, error) {
-	return Decode(contentBytes)
+	_ = "STUB: not implemented"
+	return "", "",
+
+		// Detect returns the character encoding, a confidence level, and the
+		// language.
+		nil
 }
 
-// Detect returns the character encoding, a confidence level, and the
-// language.
 func Detect(contentBytes []byte) (string, float64, string) {
-	result := chardet.Detect(contentBytes)
-	encoding := result.Encoding
-	confidence := 100.0 * result.Confidence
-
-	if encoding == "" {
-		encoding = UnknownEncoding
-	}
-
-	for {
-		detected := DetectByBOM(contentBytes)
-		if detected != "" {
-			encoding = detected
-			break
-		}
-
-		if encoding == consts.Ascii {
-			break
-		}
-
-		// We need to check for UTF16/32 encodings first, as
-		// UTF16/32 encoded first can be valid UTF8 files (surprisingly).
-		// For example, without the logic below,
-		// testdata/wpt/resources/utf-32-big-endian-nobom.html
-		// is reported to be UTF-8 with a .85 (85%) confidence level.
-		if confidence <= MinConfidenceForUTF1632Checks {
-			if IsUTF32LE(contentBytes) >= HitMissRatioForUTF1632Checks {
-				encoding = consts.UTF32Le
-				break
-			}
-			if IsUTF32BE(contentBytes) >= HitMissRatioForUTF1632Checks {
-				encoding = consts.UTF32Be
-				break
-			}
-			if IsUTF16LE(contentBytes) >= HitMissRatioForUTF1632Checks {
-				encoding = consts.UTF16Le
-				break
-			}
-			if IsUTF16BE(contentBytes) >= HitMissRatioForUTF1632Checks {
-				encoding = consts.UTF16Be
-				break
-			}
-		}
-
-		hasC0 := containsAnyByte(contentBytes, c0Chars)
-		hasC1 := containsAnyByte(contentBytes, c1Chars)
-		hasHI := containsAnyByte(contentBytes, hiChars)
-
-		if utf8.Valid(contentBytes) {
-			if !hasC0 && !hasC1 && !hasHI {
-				encoding = consts.Ascii
-				break
-			}
-
-			if !hasHI {
-				encoding = consts.ISO88591
-				break
-			}
-
-			// We prioritize identifying UTF-8 over non-UTF8 encodings,
-			// so let's skip these checks.
-			//
-			// if containsAnyByte(contentBytes, c0Chars) {
-			// 	// eg: ISO-2022-JP
-			// 	break
-			// }
-
-			// if !containsAnyByte(contentBytes, hiChars) {
-			// 	// eg: HZ-GB-2312
-			// 	break
-			// }
-
-			encoding = consts.UTF8
-			break
-		}
-
-		if strings.HasPrefix(strings.ToLower(encoding), "windows") && !hasC1 {
-			// This is a false positive, as all Windows-* encodings include
-			// C1 chars.
-			encoding = consts.ISO88591
-			break
-		}
-
-		break //nolint:staticcheck
-	}
-
-	return encoding, confidence, result.Language
+	_ = "STUB: not implemented"
+	return "", 0, ""
 }
+
+// We need to check for UTF16/32 encodings first, as
+// UTF16/32 encoded first can be valid UTF8 files (surprisingly).
+// For example, without the logic below,
+// testdata/wpt/resources/utf-32-big-endian-nobom.html
+// is reported to be UTF-8 with a .85 (85%) confidence level.
+
+// We prioritize identifying UTF-8 over non-UTF8 encodings,
+// so let's skip these checks.
+//
+// if containsAnyByte(contentBytes, c0Chars) {
+// 	// eg: ISO-2022-JP
+// 	break
+// }
+
+// if !containsAnyByte(contentBytes, hiChars) {
+// 	// eg: HZ-GB-2312
+// 	break
+// }
+
+// This is a false positive, as all Windows-* encodings include
+// C1 chars.
+
+//nolint:staticcheck
 
 type bomEntry struct {
 	bom     []byte
@@ -442,158 +346,38 @@ var (
 )
 
 // DetectByBOM detects the file's encoding solely by BOM (byte order mark).
-func DetectByBOM(contentBytes []byte) string {
-	for _, entry := range bomEntries {
-		if bytes.HasPrefix(contentBytes, entry.bom) {
-			return entry.charset
-		}
-	}
-
-	return ""
-}
+func DetectByBOM(contentBytes []byte) string { _ = "STUB: not implemented"; return "" }
 
 // IsBinary returns true if the bytes contain \x00-\x08,\x0b,\x0e-\x1f .
-func IsBinary(rawFileContent []byte) bool {
-	return containsAnyByte(rawFileContent, c0Chars)
-}
+func IsBinary(rawFileContent []byte) bool { _ = "STUB: not implemented"; return false }
 
 // IsStrictBinary is like IsBinary but does not flag files that only contain
 // ESC (0x1b), SO (0x0e), or SI (0x0f) as their C0 control characters.
 // These are used by ISO-2022 family encodings (ISO-2022-JP, ISO-2022-KR, etc.)
 // and should not cause a file to be treated as binary.
-func IsStrictBinary(rawFileContent []byte) bool {
-	return containsAnyByte(rawFileContent, c0CharsStrictBinary)
-}
+func IsStrictBinary(rawFileContent []byte) bool { _ = "STUB: not implemented"; return false }
 
 // IsBinaryFile is deprecated and may be removed in the future.
 // Use IsBinary instead.
-func IsBinaryFile(rawFileContent []byte) bool {
-	return IsBinary(rawFileContent)
-}
+func IsBinaryFile(rawFileContent []byte) bool { _ = "STUB: not implemented"; return false }
 
 // isMultiByteEncoding returns true if the encoding is a multi-byte encoding
 // (UTF-16 or UTF-32) that naturally contains null bytes.
-func isMultiByteEncoding(enc string) bool {
-	normalized := normalizeName(enc)
-	return strings.HasPrefix(normalized, "utf16") || strings.HasPrefix(normalized, "utf32")
-}
+func isMultiByteEncoding(enc string) bool { _ = "STUB: not implemented"; return false }
 
 // IsUTF16BE returns a hit/miss ratio to identify if the file is UTF16BE encoded.
-func IsUTF16BE(b []byte) float64 {
-	if DetectByBOM(b) == consts.UTF16Be {
-		return HitMissRatioIfBOMFound
-	}
-
-	if len(b) < 2 {
-		return 0.0
-	}
-
-	if len(b)%2 != 0 {
-		return 0.0
-	}
-
-	hit := 0
-	miss := 0
-	for i := 0; i < len(b)-1; i += 2 {
-		if b[i] == 0x00 && b[i+1] >= 0x20 && b[i+1] <= 0x7E {
-			hit++
-			continue
-		}
-		miss++
-	}
-
-	return float64(hit) / float64(miss)
-}
+func IsUTF16BE(b []byte) float64 { _ = "STUB: not implemented"; return 0 }
 
 // IsUTF16LE returns a hit/miss ratio to identify if the file is UTF16LE encoded.
-func IsUTF16LE(b []byte) float64 {
-	if DetectByBOM(b) == consts.UTF16Le {
-		return HitMissRatioIfBOMFound
-	}
-
-	if len(b) < 2 {
-		return 0.0
-	}
-
-	if len(b)%2 != 0 {
-		return 0.0
-	}
-
-	hit := 0
-	miss := 0
-	for i := 0; i < len(b)-1; i += 2 {
-		if b[i+1] == 0x00 && b[i] >= 0x20 && b[i] <= 0x7E {
-			hit++
-			continue
-		}
-		miss++
-	}
-
-	return float64(hit) / float64(miss)
-}
+func IsUTF16LE(b []byte) float64 { _ = "STUB: not implemented"; return 0 }
 
 // IsUTF32BE returns a hit/miss ratio to identify if the file is UTF32BE encoded.
-func IsUTF32BE(b []byte) float64 {
-	if DetectByBOM(b) == consts.UTF32Be {
-		return HitMissRatioIfBOMFound
-	}
-
-	if len(b) < 4 {
-		return 0.0
-	}
-
-	if len(b)%4 != 0 {
-		return 0.0
-	}
-
-	hit := 0
-	miss := 0
-	for i := 0; i+3 < len(b); i += 4 {
-		if b[i] == 0x00 && b[i+1] == 0x00 && b[i+2] == 0x00 &&
-			b[i+3] >= 0x20 && b[i+3] <= 0x7E {
-			hit++
-			continue
-		}
-		miss++
-	}
-
-	return float64(hit) / float64(miss)
-}
+func IsUTF32BE(b []byte) float64 { _ = "STUB: not implemented"; return 0 }
 
 // IsUTF32LE returns hit/miss ratio to identify if the file is UTF32LE encoded.
-func IsUTF32LE(b []byte) float64 {
-	if DetectByBOM(b) == consts.UTF32Le {
-		return HitMissRatioIfBOMFound
-	}
+func IsUTF32LE(b []byte) float64 { _ = "STUB: not implemented"; return 0 }
 
-	if len(b) < 4 {
-		return 0.0
-	}
-
-	if len(b)%4 != 0 {
-		return 0.0
-	}
-
-	hit := 0
-	miss := 0
-	for i := 0; i+3 < len(b); i += 4 {
-		if b[i] >= 0x20 && b[i] <= 0x7E &&
-			b[i+1] == 0x00 && b[i+2] == 0x00 && b[i+3] == 0x00 {
-			hit++
-			continue
-		}
-		miss++
-	}
-
-	return float64(hit) / float64(miss)
-}
-
-func supported(encoding string) bool {
-	normalized := normalizeName(encoding)
-	_, ok := supportedUTFEncodingMap[normalized]
-
-	return ok
-}
+func supported(encoding string) bool { _ = "STUB: not implemented"; return false }
 
 // UnrecogizedEncodingError is returned if the encountered a character set
 // we don't have a decoder for.
@@ -601,65 +385,20 @@ type UnrecogizedEncodingError struct {
 	encoding string
 }
 
-func (e *UnrecogizedEncodingError) Error() string {
-	return fmt.Sprintf("unrecognized character encoding %q", e.encoding)
-}
+func (e *UnrecogizedEncodingError) Error() string { _ = "STUB: not implemented"; return "" }
 
 func decodeText(contentBytes []byte, encoding string) (string, error) {
-	enc, ok := getDecoder(encoding)
-	if !ok {
-		return string(contentBytes), &UnrecogizedEncodingError{encoding}
-	}
-
-	validUTF8, err := enc.NewDecoder().Bytes(contentBytes)
-	if err != nil {
-		return "", err
-	}
-
-	return string(validUTF8), nil
+	_ = "STUB: not implemented"
+	return "", nil
 }
 
 func getDecoder(encoding string) (encoding.Encoding, bool) {
-	normalized := normalizeName(encoding)
-
-	_, ok := decoders[normalized]
-
-	if !ok {
-		normalized = encodingToDecoderMap[normalized]
-	}
-
-	decoder, ok := decoders[normalized]
-
-	return decoder, ok
+	_ = "STUB: not implemented"
+	return *new(encoding.Encoding), false
 }
 
-func normalizeName(name string) string {
-	r := strings.NewReplacer("-", "", "_", "", ".", "")
-	return strings.ToLower(r.Replace(name))
-}
+func normalizeName(name string) string { _ = "STUB: not implemented"; return "" }
 
-func normalizeCharsetName(charset string) string {
-	normalized := normalizeName(charset)
+func normalizeCharsetName(charset string) string { _ = "STUB: not implemented"; return "" }
 
-	if normalized == "utf8sig" {
-		normalized = "utf8bom"
-	}
-
-	return normalized
-}
-
-func containsAnyByte(a, b []byte) bool {
-	lookup := [256]bool{}
-
-	for _, c := range b {
-		lookup[c] = true
-	}
-
-	for _, c := range a {
-		if lookup[c] {
-			return true
-		}
-	}
-
-	return false
-}
+func containsAnyByte(a, b []byte) bool { _ = "STUB: not implemented"; return false }

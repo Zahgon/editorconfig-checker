@@ -2,13 +2,9 @@
 package main
 
 import (
-	"errors"
 	"flag"
-	"io/fs"
 	"os"
 	"runtime/pprof"
-	"strconv"
-	"strings"
 
 	// x-release-please-start-major
 	"github.com/editorconfig-checker/editorconfig-checker/v3/pkg/config"
@@ -53,17 +49,9 @@ var (
 
 var colorExplicitlySet bool
 
-func enableNoColor(string) error {
-	cmdlineConfig.NoColor = true
-	colorExplicitlySet = true
-	return nil
-}
+func enableNoColor(string) error { _ = "STUB: not implemented"; return nil }
 
-func disableNoColor(string) error {
-	cmdlineConfig.NoColor = false
-	colorExplicitlySet = true
-	return nil
-}
+func disableNoColor(string) error { _ = "STUB: not implemented"; return nil }
 
 func init() {
 	flag.BoolVar(&writeConfigFile, "init", false, "creates an initial configuration")
@@ -93,87 +81,27 @@ func init() {
 
 // parse the arguments from os.Args
 func parseArguments() {
+	_ = "STUB: not implemented"
 	// reset the global variables used to receive the arguments, so parseArguments can be called multiple times without reusing arguments from the previous run
-	configFilePath = ""
-	cmdlineExclude = ""
-	cmdlineConfig = config.Config{}
-	writeConfigFile = false
-	colorExplicitlySet = false
-
-	// check the NO_COLOR environment variable before parsing the arguments, so the arguments can override
-	if nocolor := os.Getenv("NO_COLOR"); nocolor != "" {
-		nocolorParsedAsBool, err := strconv.ParseBool(nocolor)
-		if err != nil {
-			// value did not parse as a boolean,
-			// so the user intended to enable NoColor by setting an arbitrary value
-			nocolorParsedAsBool = true
-		}
-		if nocolorParsedAsBool {
-			enableNoColor("")
-		}
-	}
-
-	flag.Parse()
-
-	configPaths := []string{}
-	if configFilePath == "" {
-		configPaths = append(configPaths, defaultConfigFileNames[:]...)
-	} else {
-		configPaths = append(configPaths, configFilePath)
-	}
-
-	currentConfig = config.NewConfig(configPaths)
-	loggerInjectionHook()
-
-	if strings.HasSuffix(currentConfig.Path, ".ecrc") {
-		currentConfig.Logger.Warning("The default configuration file name `.ecrc` is deprecated. Use `.editorconfig-checker.json` instead. You can simply rename it")
-	}
-
-	if writeConfigFile {
-		err := currentConfig.Save(version)
-		if err != nil {
-			currentConfig.Logger.Error("%v", err.Error())
-			exitProxy(exitCodeErrorOccurred)
-		}
-
-		exitProxy(exitCodeNormal)
-	}
-
-	err := currentConfig.Parse()
-	// this error should be surpressed if the configFilePath was not set by the user
-	// since the default config paths could trigger this
-	if err != nil && !(configFilePath == "" && errors.Is(err, fs.ErrNotExist)) {
-		currentConfig.Logger.Error("%v", err.Error())
-		exitProxy(exitCodeConfigFileNotFound)
-	}
-
-	if cmdlineExclude != "" {
-		cmdlineConfig.Exclude = append(cmdlineConfig.Exclude, cmdlineExclude)
-	}
-
-	// Some wrapping tools pass an empty string as arguments so
-	// our file searching algorithm will break because it thinks there are
-	// empty files and will cause the program to crash
-	for _, arg := range flag.Args() {
-		if arg != "" {
-			cmdlineConfig.PassedFiles = append(cmdlineConfig.PassedFiles, arg)
-		}
-	}
-
-	// GitHub Actions annotations do not parse ANSI color codes; they render
-	// as literal escape sequences and break the annotation format. Default to
-	// no-color when the effective output format is `github-actions`, but let
-	// an explicit --color / --no-color flag take precedence. See #537.
-	effectiveFormat := currentConfig.Format
-	if cmdlineConfig.Format.IsValid() {
-		effectiveFormat = cmdlineConfig.Format
-	}
-	if effectiveFormat == outputformat.GithubActions && !colorExplicitlySet {
-		cmdlineConfig.NoColor = true
-	}
-
-	currentConfig.Merge(cmdlineConfig)
+	return
 }
+
+// check the NO_COLOR environment variable before parsing the arguments, so the arguments can override
+
+// value did not parse as a boolean,
+// so the user intended to enable NoColor by setting an arbitrary value
+
+// this error should be surpressed if the configFilePath was not set by the user
+// since the default config paths could trigger this
+
+// Some wrapping tools pass an empty string as arguments so
+// our file searching algorithm will break because it thinks there are
+// empty files and will cause the program to crash
+
+// GitHub Actions annotations do not parse ANSI color codes; they render
+// as literal escape sequences and break the annotation format. Default to
+// no-color when the effective output format is `github-actions`, but let
+// an explicit --color / --no-color flag take precedence. See #537.
 
 // Main function, dude
 func main() {
@@ -246,23 +174,4 @@ func main() {
 }
 
 // ReturnableFlags returns whether a flag passed should exit the program
-func ReturnableFlags(config config.Config) bool {
-	switch {
-	case config.ShowVersion:
-		config.Logger.Output("%s", version)
-	case config.Help:
-		config.Logger.Output("USAGE:")
-		config.Logger.Output("  editorconfig-checker [OPTIONS] [FILE...]")
-		config.Logger.Output("")
-		config.Logger.Output("With no FILE arguments, all files tracked by git are checked. When one or")
-		config.Logger.Output("more FILE arguments are given, only those files are checked (the configured")
-		config.Logger.Output("exclude patterns still apply).")
-		config.Logger.Output("")
-		config.Logger.Output("OPTIONS:")
-		flag.CommandLine.SetOutput(config.Logger.GetWriter())
-		flag.PrintDefaults()
-		flag.CommandLine.SetOutput(nil)
-	}
-
-	return config.ShowVersion || config.Help
-}
+func ReturnableFlags(config config.Config) bool { _ = "STUB: not implemented"; return false }
